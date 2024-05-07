@@ -118,8 +118,17 @@ class DateUtil
         $start = clone $dt;
         $start = $start->setDate($start->format('Y'), 1, 1);
 
-        $diff  = $dt->diff($start);
-        $start = $diff->days;
+        // Carbon 3 made some breaking changes here. (Specifically from the Laravel 11 upgrade)
+        // If we're using Carbon, let's use the diffInDays method to get the difference in days.
+        // Otherwise, we're probably using DateTime, so we'll use the diff method.
+        if(class_basename($start) == 'Carbon') {
+            // Carbon 3 also returns a float here now, so we cast it to an int to be more what we expect.
+            $diff_in_days  = (int) $start->diffInDays($dt);
+            $start = $diff_in_days;
+        } else {
+            $diff  = $dt->diff($start);
+            $start = $diff->days;
+        }
 
         $set = array();
         for ($i = $start, $k = 0; $k < 7; $k++) {
